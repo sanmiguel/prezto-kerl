@@ -12,16 +12,11 @@ if (( ! $+commands[kerl] )); then
   return 1
 fi
 
-fpath=(/Users/sanmiguel/.zprezto/modules/erlang/functions $fpath)
+sdir="$(dirname $0)"
+fpath=("${sdir}/functions" $fpath)
 
-# TODO: Identify which kerl installation to use: from ~/.kerlrc ?
-. ~/.kerlrc
-if [ ! -z "$KERL_INSTALL" -a -f ${KERL_INSTALL}/activate ]; then
-    . ${KERL_INSTALL}/activate
-fi
 
-kerl_deactivate()
-{
+kerl_deactivate() { # {{{1
     if [ -n "$_KERL_PATH_REMOVABLE" ]; then
         PATH=${PATH//${_KERL_PATH_REMOVABLE}:/}
         export PATH
@@ -48,7 +43,8 @@ kerl_deactivate()
     if [ -n "$BASH" -o -n "$ZSH_VERSION" ]; then
         hash -r
     fi
-}
+} #}}}
+
 kerl_activate () {
     if [ -d "$1" ]; then
         installdir="$1"
@@ -86,6 +82,8 @@ kerl_activate () {
 
 __kerl=$(which kerl)
 kerl () {
+    # These would normally be inside the 'kerl' script, but in order to operate they need
+    # to be executed in the context of the user's $SHELL (i.e. $SHLVL == 1).
     case "$1" in
         deactivate)
             kerl_deactivate
@@ -98,3 +96,9 @@ kerl () {
             $__kerl $@
     esac
 }
+
+# TODO: Identify which kerl installation to use: from ~/.kerlrc ?
+. ~/.kerlrc
+if [ ! -z "$KERL_INSTALL" ]; then
+    kerl switch "$KERL_INSTALL"
+fi
